@@ -5,16 +5,18 @@
       <stop offset="100%" stop-color="#059669"/>
     </linearGradient>
   </defs>
-  <!-- Background -->
-  <rect width="512" height="512" rx="96" fill="#0d1117"/>
-  <!-- Shield fill -->
-  <path d="M256 72 L126 142 V278 C126 376 256 450 256 450 S386 376 386 278 V142 Z"
+  <!-- Shield fill (subtle) -->
+  <path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z"
         fill="#10b981" fill-opacity="0.08"/>
   <!-- Shield stroke -->
-  <path d="M256 72 L126 142 V278 C126 376 256 450 256 450 S386 376 386 278 V142 Z"
-        fill="none" stroke="url(#accent)" stroke-width="16" stroke-linejoin="round"/>
-  <!-- QA letters -->
-  <text x="256" y="312" text-anchor="middle"
-        font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-weight="800"
-        font-size="152" fill="url(#accent)" letter-spacing="-6">QA</text>
+  <path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z"
+        fill="none" stroke="url(#accent)" stroke-width="26" stroke-linejoin="round"/>
+  <!-- Lock shackle -->
+  <path d="M224 253 V230 A32 32 0 0 1 288 230 V253"
+        fill="none" stroke="url(#accent)" stroke-width="14" stroke-linecap="round"/>
+  <!-- Lock body -->
+  <rect x="202" y="253" width="108" height="82" rx="12" fill="url(#accent)"/>
+  <!-- Keyhole -->
+  <circle cx="256" cy="284" r="14" fill="#0d1117"/>
+  <path d="M248 292 L256 323 L264 292 Z" fill="#0d1117"/>
 </svg>
