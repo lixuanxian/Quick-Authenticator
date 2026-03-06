@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell *)",
+      "Read(//c/Program Files**)",
+      "Bash(find \"/c/Program Files**)",
+      "Read(//d//**)",
+      "Bash(convert --version)",
+      "Bash(python -c \"from PIL import Image; print\\(''pillow available''\\)\")",
+      "Bash(python -c \"import importlib; print\\(''python ok but no pillow''\\)\")"
+    ]
+  }
+}

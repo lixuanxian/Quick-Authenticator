@@ -7,6 +7,11 @@ dist-web/
 src-tauri/target/
 src-tauri/gen/
 
+# key files
+src-tauri/gen/android/app/keystore.properties
+src-tauri/gen/android/app/release.keystore
+
+
 # Logs
 *.log
 npm-debug.log*
@@ -26,5 +31,5 @@ desktop.ini
 .env
 .env.*
 
-# Claude Code
-.claude/
+# Claude Co
+

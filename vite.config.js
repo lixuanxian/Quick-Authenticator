@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => {
         ? "es2022"
         : process.env.TAURI_ENV_PLATFORM === "windows" || process.env.TAURI_ENV_PLATFORM === "android"
           ? "chrome105"
-          : "safari13",
+          : "safari15",
       minify: isWeb ? "esbuild" : (!process.env.TAURI_ENV_DEBUG ? "esbuild" : false),
       sourcemap: isWeb ? false : !!process.env.TAURI_ENV_DEBUG,
       outDir: isWeb ? "dist-web" : "dist",
