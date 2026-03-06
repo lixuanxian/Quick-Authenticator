@@ -39,13 +39,19 @@ jobs:
 
       - run: npm ci
 
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          git fetch --tags
+          echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Quick Authenticator ${{ github.ref_name }}'
+          tagName: ${{ steps.get_tag.outputs.tag }}
+          releaseName: 'Quick Authenticator ${{ steps.get_tag.outputs.tag }}'
           releaseBody: 'See the assets below to download for your platform.'
           releaseDraft: true
           prerelease: false

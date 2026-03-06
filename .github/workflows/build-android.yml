@@ -61,15 +61,20 @@ jobs:
             "$ANDROID_KEYSTORE_PASSWORD" "$ANDROID_KEY_ALIAS" "$ANDROID_KEY_PASSWORD" \
             > src-tauri/gen/android/app/keystore.properties
 
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          git fetch --tags
+          echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
       - name: Build Android APK
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
         run: npx tauri android build --apk --target aarch64
 
       - name: Upload APK to release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ steps.get_tag.outputs.tag }}
           draft: true
           files: src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
