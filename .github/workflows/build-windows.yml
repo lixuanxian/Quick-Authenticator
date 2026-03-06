@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   build:
+    #refer https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md
     runs-on: windows-latest
 
     steps:
@@ -18,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable

@@ -15,22 +15,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - args: '--target aarch64-apple-darwin'
-          - args: '--target x86_64-apple-darwin'
+          #refer https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md
+          - runner: macos-26
+          #refer https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md
+          - runner: macos-26-intel
 
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-darwin,x86_64-apple-darwin
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -55,4 +55,3 @@ jobs:
           releaseBody: 'See the assets below to download for your platform.'
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}

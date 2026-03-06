@@ -11,25 +11,15 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    #refer https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md
+    runs-on: macos-26
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Cache Android NDK
-        id: ndk-cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
-          key: android-ndk-27.0.12077973
-
-      - name: Install Android NDK
-        if: steps.ndk-cache.outputs.cache-hit != 'true'
-        run: $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.0.12077973"
+          node-version: 22
 
       - name: Install Rust stable with Android targets
         uses: dtolnay/rust-toolchain@stable
@@ -56,7 +46,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > src-tauri/gen/android/app/release.keystore
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > src-tauri/gen/android/app/release.keystore
           printf 'storeFile=release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
             "$ANDROID_KEYSTORE_PASSWORD" "$ANDROID_KEY_ALIAS" "$ANDROID_KEY_PASSWORD" \
             > src-tauri/gen/android/app/keystore.properties
@@ -69,7 +59,7 @@ jobs:
 
       - name: Build Android APK
         env:
-          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.3.13750724
         run: npx tauri android build --apk --target aarch64
 
       - name: Upload APK to release
