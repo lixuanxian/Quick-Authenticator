@@ -449,15 +449,15 @@ ${!isEdit ? `<div class="form-tabs">
     ${t("btn.upload.image")}
   </button>
   <input type="file" id="qr-file-input" accept="image/*" style="display:none" />
-  <button class="btn-scan" id="btn-scan-screen">
+  ${platform.isMobile ? "" : `<button class="btn-scan" id="btn-scan-screen">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
       <line x1="8" y1="21" x2="16" y2="21"/>
       <line x1="12" y1="17" x2="12" y2="21"/>
     </svg>
     ${t("btn.scan.screen")}
-  </button>
-  <p class="field-hint">${t("scan.hint")}</p>
+  </button>`}
+  <p class="field-hint">${platform.isMobile ? t("scan.hint.mobile") : t("scan.hint")}</p>
 </div>
 
 <div id="tab-manual" class="tab-content${isEdit ? "" : " hidden"}">

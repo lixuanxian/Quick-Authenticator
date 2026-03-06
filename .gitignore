@@ -5,7 +5,7 @@ node_modules/
 dist/
 dist-web/
 src-tauri/target/
-src-tauri/gen/
+src-tauri/gen/schemas/
 
 # key files
 src-tauri/gen/android/app/keystore.properties
