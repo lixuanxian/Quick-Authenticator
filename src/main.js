@@ -156,8 +156,8 @@ function renderShell() {
 
   if (platform.isDesktop) {
     return `
-<div class="titlebar" data-tauri-drag-region>
-  <div class="titlebar-title">${titleIcon} ${t("app.name")}</div>
+<div class="titlebar">
+  <div class="titlebar-title" data-tauri-drag-region>${titleIcon} ${t("app.name")}</div>
   <div class="titlebar-actions">
     <button id="btn-theme" class="tb-btn" title="${t("settings.theme")}">${themeIcon}</button>
     <button id="btn-lang" class="tb-btn" title="${t("settings.language")}">${langLabel}</button>
