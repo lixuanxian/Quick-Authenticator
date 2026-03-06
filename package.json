@@ -13,8 +13,9 @@
     "preview:web": "vite preview --mode web --outDir dist-web",
     "dev:desktop": "tauri dev",
     "build:desktop": "tauri build",
+    "build:desktop:local": "tauri build --no-bundle",
     "init:android": "tauri android init && npm run icons:android",
-    "dev:android": "tauri android dev --target aarch64",
+    "dev:android": "tauri android dev",
     "build:android": "tauri android build --apk --target aarch64",
     "icons:android": "node scripts/generate-icons.mjs"
   },

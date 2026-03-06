@@ -8,7 +8,16 @@ import { writeFileSync } from 'fs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 
-const svgBuffer = readFileSync(join(root, 'public/icons/icon.svg'));
+const svgSource = readFileSync(join(root, 'public/icons/icon.svg'), 'utf-8');
+const svgBuffer = Buffer.from(svgSource);
+
+// Android foreground variant: white keyhole + deeper green (derived from icon.svg)
+const androidSvg = svgSource
+  .replace(/#059669/g, '#10b981')   // gradient end → brighter (replace first to avoid chain conflict)
+  .replace(/#34d399/g, '#34d399')   // gradient start → keep original bright
+  .replace(/fill-opacity="[^"]*"/, 'fill-opacity="0.15"')  // shield fill more visible
+  .replace(/fill="#0d1117"/g, 'fill="#ffffff"');             // keyhole → white
+const androidSvgBuffer = Buffer.from(androidSvg);
 
 // Ensure directories exist
 mkdirSync(join(root, 'src-tauri/icons'), { recursive: true });
@@ -71,7 +80,7 @@ for (const { dir, size } of androidDensities) {
   mkdirSync(outDir, { recursive: true });
 
   // ic_launcher & ic_launcher_round — full icon
-  const iconBuf = await sharp(svgBuffer).resize(size, size).png().toBuffer();
+  const iconBuf = await sharp(androidSvgBuffer).resize(size, size).png().toBuffer();
   for (const name of ['ic_launcher.png', 'ic_launcher_round.png']) {
     writeFileSync(join(outDir, name), iconBuf);
   }
@@ -82,7 +91,7 @@ for (const { dir, size } of foregroundSizes) {
   const outDir = join(root, androidBase, dir);
   // Foreground: icon at 66% centered on transparent canvas
   const innerSize = Math.round(size * 0.66);
-  const innerBuf = await sharp(svgBuffer).resize(innerSize, innerSize).png().toBuffer();
+  const innerBuf = await sharp(androidSvgBuffer).resize(innerSize, innerSize).png().toBuffer();
   const foreground = await sharp({
     create: { width: size, height: size, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } }
   })

@@ -75,6 +75,7 @@ const zh = {
   "alert.import.failed": "Google Authenticator 导入失败：",
   "alert.unsupported.qr": "不支持的二维码格式。\n\n支持：otpauth://、oktaverify://、duo://、Google Authenticator 导出",
   "alert.camera.failed": "无法启动摄像头：",
+  "alert.camera.denied": "摄像头权限被拒绝，请在系统设置中允许本应用使用摄像头后重试。",
 
   // ── QR Modal ──
   "modal.scan.title": "扫描二维码",
@@ -278,6 +279,7 @@ const en = {
   "alert.import.failed": "Google Authenticator import failed: ",
   "alert.unsupported.qr": "Unsupported QR code format.\n\nSupported: otpauth://, oktaverify://, duo://, Google Authenticator export",
   "alert.camera.failed": "Could not start camera: ",
+  "alert.camera.denied": "Camera permission denied. Please allow camera access in system settings and try again.",
 
   // ── QR Modal ──
   "modal.scan.title": "Scan QR Code",

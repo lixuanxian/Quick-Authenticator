@@ -16,6 +16,7 @@ let tickInterval = null;
 
 // ── Theme ─────────────────────────────────────────────────────────────────
 const THEME_STORAGE_KEY = "totp_authenticator_theme";
+const THEME_BG = { dark: "#161b22", light: "#f6f8fa" };
 
 function initTheme() {
   const saved = localStorage.getItem(THEME_STORAGE_KEY);
@@ -23,6 +24,23 @@ function initTheme() {
     document.documentElement.setAttribute("data-theme", saved);
   } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
     document.documentElement.setAttribute("data-theme", "light");
+  }
+  // Sync Android native status bar area background with current theme
+  syncAndroidStatusBar();
+}
+
+function syncAndroidStatusBar() {
+  const theme = document.documentElement.getAttribute("data-theme") || "dark";
+  const color = THEME_BG[theme];
+  if (window.AndroidBridge?.setStatusBarColor) {
+    window.AndroidBridge.setStatusBarColor(color);
+  } else if (/Android/i.test(navigator.userAgent)) {
+    // Bridge may not be attached yet, retry
+    setTimeout(() => {
+      if (window.AndroidBridge?.setStatusBarColor) {
+        window.AndroidBridge.setStatusBarColor(color);
+      }
+    }, 500);
   }
 }
 
@@ -34,6 +52,7 @@ function toggleTheme() {
   const next = getTheme() === "light" ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", next);
   localStorage.setItem(THEME_STORAGE_KEY, next);
+  syncAndroidStatusBar();
   render();
 }
 
@@ -125,7 +144,9 @@ function render() {
   if (platform.isDesktop) {
     const titlebar = shell.querySelector(".titlebar");
     if (titlebar) {
-      titlebar.addEventListener("mousedown", () => platform.startDragging());
+      titlebar.addEventListener("mousedown", (e) => {
+        if (!e.target.closest("button")) platform.startDragging();
+      });
     }
     shell.querySelector("#btn-close")?.addEventListener("click", () => platform.closeWindow());
     shell.querySelector("#btn-minimize")?.addEventListener("click", () => platform.minimizeWindow());
@@ -148,7 +169,7 @@ function render() {
 }
 
 function renderShell() {
-  const titleIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+  const titleIcon = `<svg width="18" height="18" viewBox="0 0 512 512"><defs><linearGradient id="ti" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="#10b981" fill-opacity=".10"/><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="none" stroke="url(#ti)" stroke-width="12" stroke-linejoin="round"/><path d="M224 253 V230 A32 32 0 0 1 288 230 V253" fill="none" stroke="url(#ti)" stroke-width="14" stroke-linecap="round"/><rect x="202" y="253" width="108" height="82" rx="12" fill="url(#ti)"/><circle cx="256" cy="284" r="14" fill="var(--bg2)"/><path d="M248 292 L256 323 L264 292 Z" fill="var(--bg2)"/></svg>`;
   const sunIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
   const moonIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
   const themeIcon = getTheme() === "dark" ? sunIcon : moonIcon;
@@ -156,13 +177,13 @@ function renderShell() {
 
   if (platform.isDesktop) {
     return `
-<div class="titlebar">
+<div class="titlebar" data-tauri-drag-region>
   <div class="titlebar-title" data-tauri-drag-region>${titleIcon} ${t("app.name")}</div>
-  <div class="titlebar-actions">
+  <div class="titlebar-actions" data-tauri-drag-region>
     <button id="btn-theme" class="tb-btn" title="${t("settings.theme")}">${themeIcon}</button>
     <button id="btn-lang" class="tb-btn" title="${t("settings.language")}">${langLabel}</button>
   </div>
-  <div class="titlebar-controls">
+  <div class="titlebar-controls" data-tauri-drag-region>
     <button id="btn-minimize" class="tb-btn">─</button>
     <button id="btn-maximize" class="tb-btn">□</button>
     <button id="btn-close" class="tb-btn close">✕</button>
@@ -193,7 +214,7 @@ function renderHome(shell) {
   content.innerHTML = `
 <div class="nav-tabs">
   <button class="nav-btn active" data-nav="otp">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <svg width="14" height="14" viewBox="0 0 512 512"><defs><linearGradient id="oti" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="#10b981" fill-opacity=".10"/><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="none" stroke="url(#oti)" stroke-width="12" stroke-linejoin="round"/><path d="M224 253 V230 A32 32 0 0 1 288 230 V253" fill="none" stroke="url(#oti)" stroke-width="14" stroke-linecap="round"/><rect x="202" y="253" width="108" height="82" rx="12" fill="url(#oti)"/><circle cx="256" cy="284" r="14" fill="var(--bg2)"/><path d="M248 292 L256 323 L264 292 Z" fill="var(--bg2)"/></svg>
     OTP
   </button>
   <button class="nav-btn" data-nav="passkeys">
@@ -242,7 +263,7 @@ function renderHome(shell) {
   });
 
   content.querySelector("#btn-export")?.addEventListener("click", () => {
-    if (accounts.length === 0) { alert(t("no.accounts")); return; }
+    if (accounts.length === 0) { showAlert(t("no.accounts")); return; }
     showMigrationExportModal();
   });
 
@@ -360,7 +381,7 @@ async function handleScannedText(text) {
       view = "home";
       render();
     } catch (e) {
-      alert(t("alert.parse.failed") + e);
+      showAlert(t("alert.parse.failed") + e);
     }
   } else if (isOktaVerifyUri(text)) {
     showActivatingModal("Okta Verify");
@@ -374,7 +395,7 @@ async function handleScannedText(text) {
       render();
     } catch (e) {
       closeActivatingModal();
-      alert(t("alert.okta.failed") + e.message);
+      showAlert(t("alert.okta.failed") + e.message);
     }
   } else if (isDuoUri(text)) {
     showActivatingModal("Duo Mobile");
@@ -388,7 +409,7 @@ async function handleScannedText(text) {
       render();
     } catch (e) {
       closeActivatingModal();
-      alert(t("alert.duo.failed") + e.message);
+      showAlert(t("alert.duo.failed") + e.message);
     }
   } else if (isGoogleMigrationUri(text)) {
     try {
@@ -396,19 +417,19 @@ async function handleScannedText(text) {
       const existing = new Set(accounts.map(a => `${a.issuer}|${a.name}|${a.secret}`));
       const newAccounts = imported.filter(a => !existing.has(`${a.issuer}|${a.name}|${a.secret}`));
       if (newAccounts.length === 0) {
-        alert(t("alert.import.all.exist", imported.length));
+        showAlert(t("alert.import.all.exist", imported.length));
         return;
       }
       accounts.push(...newAccounts);
       await saveAccounts();
       view = "home";
       render();
-      alert(t("alert.import.success", newAccounts.length, imported.length - newAccounts.length));
+      showAlert(t("alert.import.success", newAccounts.length, imported.length - newAccounts.length));
     } catch (e) {
-      alert(t("alert.import.failed") + e.message);
+      showAlert(t("alert.import.failed") + e.message);
     }
   } else {
-    alert(t("alert.unsupported.qr"));
+    showAlert(t("alert.unsupported.qr"));
   }
 }
 
@@ -605,9 +626,9 @@ ${!isEdit ? `<div class="form-tabs">
   content.querySelector("#btn-submit")?.addEventListener("click", async () => {
     const name = content.querySelector("#f-name").value.trim();
     const secret = content.querySelector("#f-secret").value.trim().toUpperCase().replace(/\s/g, "");
-    if (!name || !secret) { alert(t("alert.name.secret.required")); return; }
+    if (!name || !secret) { showAlert(t("alert.name.secret.required")); return; }
     const valid = await platform.validateSecret(secret);
-    if (!valid) { alert(t("alert.invalid.secret")); return; }
+    if (!valid) { showAlert(t("alert.invalid.secret")); return; }
 
     const account = {
       id: isEdit ? editingId : crypto.randomUUID(),
@@ -647,7 +668,7 @@ ${!isEdit ? `<div class="form-tabs">
       const text = await platform.scanFromImage(file);
       await handleScannedText(text);
     } catch (e) {
-      alert(t("alert.no.qr.found"));
+      showAlert(t("alert.no.qr.found"));
     }
   });
 
@@ -658,7 +679,7 @@ ${!isEdit ? `<div class="form-tabs">
       await handleScannedText(text);
     } catch (e) {
       if (e.name === "NotAllowedError") return; // user cancelled
-      alert(t("alert.no.qr.screen"));
+      showAlert(t("alert.no.qr.screen"));
     }
   });
 
@@ -679,7 +700,7 @@ ${!isEdit ? `<div class="form-tabs">
         render();
       } catch (e) {
         closeActivatingModal();
-        alert(t("alert.okta.failed") + e.message);
+        showAlert(t("alert.okta.failed") + e.message);
       }
       return;
     }
@@ -696,7 +717,7 @@ ${!isEdit ? `<div class="form-tabs">
         render();
       } catch (e) {
         closeActivatingModal();
-        alert(t("alert.duo.failed") + e.message);
+        showAlert(t("alert.duo.failed") + e.message);
       }
       return;
     }
@@ -707,16 +728,16 @@ ${!isEdit ? `<div class="form-tabs">
         const existing = new Set(accounts.map(a => `${a.issuer}|${a.name}|${a.secret}`));
         const newAccounts = imported.filter(a => !existing.has(`${a.issuer}|${a.name}|${a.secret}`));
         if (newAccounts.length === 0) {
-          alert(t("alert.import.all.exist", imported.length));
+          showAlert(t("alert.import.all.exist", imported.length));
           return;
         }
         accounts.push(...newAccounts);
         await saveAccounts();
         view = "home";
         render();
-        alert(t("alert.import.success", newAccounts.length, imported.length - newAccounts.length));
+        showAlert(t("alert.import.success", newAccounts.length, imported.length - newAccounts.length));
       } catch (e) {
-        alert(t("alert.import.failed") + e.message);
+        showAlert(t("alert.import.failed") + e.message);
       }
       return;
     }
@@ -728,7 +749,7 @@ ${!isEdit ? `<div class="form-tabs">
       view = "home";
       render();
     } catch (e) {
-      alert(t("alert.parse.failed") + e);
+      showAlert(t("alert.parse.failed") + e);
     }
   });
 }
@@ -782,10 +803,11 @@ function showScannerModal() {
     onOkta: (text) => { closeModal(); handleScannedText(text); },
     onDuo: (text) => { closeModal(); handleScannedText(text); },
     onGoogleMigration: (text) => { closeModal(); handleScannedText(text); },
-    onUnsupported: () => { closeModal(); alert(t("alert.unsupported.qr")); },
+    onUnsupported: () => { closeModal(); showAlert(t("alert.unsupported.qr")); },
   }).catch((e) => {
     closeModal();
-    alert(t("alert.camera.failed") + e);
+    const denied = String(e).includes("NotAllowedError") || String(e).includes("Permission");
+    showAlert(denied ? t("alert.camera.denied") : t("alert.camera.failed") + e);
   });
 }
 
@@ -810,7 +832,7 @@ async function showQrModal(acc) {
     overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
     overlay.querySelector("#modal-close").addEventListener("click", closeModal);
   } catch (e) {
-    alert(t("alert.qr.failed") + e);
+    showAlert(t("alert.qr.failed") + e);
   }
 }
 
@@ -857,7 +879,7 @@ async function showMigrationExportModal() {
     document.body.appendChild(overlay);
     renderPage();
   } catch (e) {
-    alert(t("alert.export.failed") + e);
+    showAlert(t("alert.export.failed") + e);
   }
 }
 
@@ -898,13 +920,57 @@ async function copyCode(acc) {
 }
 
 async function deleteAccount(id) {
-  if (!confirm(t("confirm.delete.account"))) return;
+  if (!await showConfirm(t("confirm.delete.account"))) return;
   accounts = accounts.filter(a => a.id !== id);
   await saveAccounts();
   render();
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+function showAlert(msg) {
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.innerHTML = `
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title">${t("app.name") || ""}</span>
+    <button class="modal-close" id="modal-close">&times;</button>
+  </div>
+  <div style="font-size:13px;color:var(--text);word-break:break-word;white-space:pre-wrap">${esc(String(msg))}</div>
+  <button class="btn-submit" id="alert-ok" style="margin-top:4px">OK</button>
+</div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector("#modal-close").addEventListener("click", close);
+  overlay.querySelector("#alert-ok").addEventListener("click", close);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+}
+
+function showConfirm(msg) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    overlay.innerHTML = `
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title">${t("app.name") || ""}</span>
+    <button class="modal-close" id="modal-close">&times;</button>
+  </div>
+  <div style="font-size:13px;color:var(--text);word-break:break-word;white-space:pre-wrap">${esc(String(msg))}</div>
+  <div style="display:flex;gap:8px;margin-top:4px">
+    <button class="btn-submit" id="confirm-cancel" style="flex:1;background:var(--bg3);color:var(--text2)">${getLang() === "zh-CN" ? "取消" : "Cancel"}</button>
+    <button class="btn-submit" id="confirm-ok" style="flex:1">${getLang() === "zh-CN" ? "确定" : "OK"}</button>
+  </div>
+</div>`;
+    document.body.appendChild(overlay);
+    const close = (val) => { overlay.remove(); resolve(val); };
+    overlay.querySelector("#modal-close").addEventListener("click", () => close(false));
+    overlay.querySelector("#confirm-cancel").addEventListener("click", () => close(false));
+    overlay.querySelector("#confirm-ok").addEventListener("click", () => close(true));
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(false); });
+  });
+}
+
 function esc(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
@@ -935,7 +1001,7 @@ function renderPasskeys(shell) {
   content.innerHTML = `
 <div class="nav-tabs">
   <button class="nav-btn" data-nav="otp">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <svg width="14" height="14" viewBox="0 0 512 512"><defs><linearGradient id="oti" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="#10b981" fill-opacity=".10"/><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="none" stroke="url(#oti)" stroke-width="12" stroke-linejoin="round"/><path d="M224 253 V230 A32 32 0 0 1 288 230 V253" fill="none" stroke="url(#oti)" stroke-width="14" stroke-linecap="round"/><rect x="202" y="253" width="108" height="82" rx="12" fill="url(#oti)"/><circle cx="256" cy="284" r="14" fill="var(--bg2)"/><path d="M248 292 L256 323 L264 292 Z" fill="var(--bg2)"/></svg>
     OTP
   </button>
   <button class="nav-btn active" data-nav="passkeys">
@@ -947,11 +1013,11 @@ function renderPasskeys(shell) {
   <div class="search-wrap" style="flex:1">
     <span style="font-size:13px;font-weight:600;color:var(--text)">Passkeys</span>
   </div>
-  <button class="btn-export" id="btn-push-settings" title="${t("push.settings")}">
+  ${isPushSupported() ? `<button class="btn-export" id="btn-push-settings" title="${t("push.settings")}">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
     </svg>
-  </button>
+  </button>` : ""}
   <button class="btn-add" id="btn-add-passkey" title="${t("passkey.add.btn")}">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -1019,9 +1085,9 @@ function renderPasskeys(shell) {
   });
 
   content.querySelectorAll(".btn-pk-delete").forEach(btn => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", async (e) => {
       e.stopPropagation();
-      if (!confirm(t("confirm.delete.passkey"))) return;
+      if (!await showConfirm(t("confirm.delete.passkey"))) return;
       deletePasskey(btn.dataset.pkId);
       render();
     });
@@ -1079,7 +1145,7 @@ function renderAddPasskey(shell) {
     const userDisplayName = content.querySelector("#pk-displayname").value.trim() || userName;
 
     if (!rpId || !userName) {
-      alert(t("alert.rpid.username.required"));
+      showAlert(t("alert.rpid.username.required"));
       return;
     }
 
@@ -1089,7 +1155,7 @@ function renderAddPasskey(shell) {
         view = "passkeys";
         render();
       } catch (e) {
-        alert(t("alert.create.failed") + e.message);
+        showAlert(t("alert.create.failed") + e.message);
       }
     });
   });
@@ -1290,13 +1356,13 @@ async function renderPushSettings(shell) {
 
   content.querySelector("#btn-subscribe")?.addEventListener("click", async () => {
     const vapidKey = content.querySelector("#push-vapid")?.value.trim();
-    if (!vapidKey) { alert(t("alert.enter.vapid")); return; }
+    if (!vapidKey) { showAlert(t("alert.enter.vapid")); return; }
     try {
       saveVapidKey(vapidKey);
       await subscribePush(vapidKey);
       render();
     } catch (e) {
-      alert(t("alert.subscribe.failed") + e.message);
+      showAlert(t("alert.subscribe.failed") + e.message);
     }
   });
 
@@ -1305,13 +1371,13 @@ async function renderPushSettings(shell) {
       await unsubscribePush();
       render();
     } catch (e) {
-      alert(t("alert.unsubscribe.failed") + e.message);
+      showAlert(t("alert.unsubscribe.failed") + e.message);
     }
   });
 
   content.querySelector("#btn-test-push")?.addEventListener("click", () => {
     if (!("Notification" in window) || Notification.permission !== "granted") {
-      alert(t("alert.grant.permission"));
+      showAlert(t("alert.grant.permission"));
       return;
     }
     new Notification(t("app.name"), {

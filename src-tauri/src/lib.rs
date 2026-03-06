@@ -259,9 +259,10 @@ pub fn run() {
                         _ => {}
                     })
                     .on_tray_icon_event(|tray, event| {
-                        use tauri::tray::{MouseButton, TrayIconEvent};
+                        use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
                         if let TrayIconEvent::Click {
                             button: MouseButton::Left,
+                            button_state: MouseButtonState::Up,
                             ..
                         } = event
                         {
