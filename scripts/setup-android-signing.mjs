@@ -39,17 +39,17 @@ function ensureGradleSigningConfig() {
 
   console.log('Injecting signing config into build.gradle.kts...');
 
-  // 1) Add keystoreProperties block after tauriProperties block
+  // 1) Add keystoreProperties block before the android {} block (top-level)
   content = content.replace(
-    /(val tauriProperties = Properties\(\)\.apply \{[^}]+\})/s,
-    `$1
-
-val keystoreProperties = Properties().apply {
+    /^(android \{)/m,
+    `val keystoreProperties = Properties().apply {
     val propFile = file("keystore.properties")
     if (propFile.exists()) {
         propFile.inputStream().use { load(it) }
     }
-}`
+}
+
+$1`
   );
 
   // 2) Add signingConfigs inside android {} after namespace
