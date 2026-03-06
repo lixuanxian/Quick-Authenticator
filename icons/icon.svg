@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="accent" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#0d1117"/>
+  <!-- Shield fill -->
+  <path d="M256 72 L126 142 V278 C126 376 256 450 256 450 S386 376 386 278 V142 Z"
+        fill="#10b981" fill-opacity="0.08"/>
+  <!-- Shield stroke -->
+  <path d="M256 72 L126 142 V278 C126 376 256 450 256 450 S386 376 386 278 V142 Z"
+        fill="none" stroke="url(#accent)" stroke-width="16" stroke-linejoin="round"/>
+  <!-- QA letters -->
+  <text x="256" y="312" text-anchor="middle"
+        font-family="'Segoe UI', Arial, Helvetica, sans-serif" font-weight="800"
+        font-size="152" fill="url(#accent)" letter-spacing="-6">QA</text>
+</svg>

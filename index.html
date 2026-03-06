@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0d1117" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Quick Authenticator</title>
+    <link rel="manifest" href="/Quick-Authenticator/manifest.json" />
+    <link rel="apple-touch-icon" href="/Quick-Authenticator/icons/192.png" />
+    <link rel="stylesheet" href="/Quick-Authenticator/fonts/fonts.css" />
+    <script>
+      (function(){
+        var t=localStorage.getItem('totp_authenticator_theme');
+        if(t)document.documentElement.setAttribute('data-theme',t);
+        else if(window.matchMedia('(prefers-color-scheme:light)').matches)
+          document.documentElement.setAttribute('data-theme','light');
+        var l=localStorage.getItem('totp_authenticator_lang');
+        document.documentElement.lang=l==='en'?'en':'zh-CN';
+      })();
+    </script>
+    <script type="module" crossorigin src="/Quick-Authenticator/assets/index-DQQ0xcRk.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      if ('serviceWorker' in navigator && !window.__TAURI_INTERNALS__) {
+        navigator.serviceWorker.register('sw.js', { scope: './' }).then(function(reg) {
+          // Check for updates periodically (every 30 min)
+          setInterval(function() { reg.update(); }, 30 * 60 * 1000);
+
+          function onNewSW(sw) {
+            // Show update toast when new SW is waiting
+            var bar = document.createElement('div');
+            bar.className = 'sw-update-toast';
+            var lang = document.documentElement.lang === 'zh-CN' ? 'zh' : 'en';
+            var msg = lang === 'zh' ? '发现新版本' : 'New version available';
+            var btn = lang === 'zh' ? '刷新' : 'Reload';
+            bar.innerHTML = '<span>' + msg + '</span><button onclick="this.parentElement._apply()">' + btn + '</button>';
+            bar._apply = function() {
+              sw.postMessage('skipWaiting');
+            };
+            document.body.appendChild(bar);
+          }
+
+          if (reg.waiting) onNewSW(reg.waiting);
+          reg.addEventListener('updatefound', function() {
+            var sw = reg.installing;
+            if (!sw) return;
+            sw.addEventListener('statechange', function() {
+              if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+                onNewSW(sw);
+              }
+            });
+          });
+        }).catch(function() {});
+
+        // Reload page when new SW takes control
+        var refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+          if (!refreshing) { refreshing = true; location.reload(); }
+        });
+      }
+    </script>
+  </body>
+</html>
