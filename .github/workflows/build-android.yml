@@ -11,6 +11,8 @@ permissions:
 
 jobs:
   build:
+    #ubuntu-24.04-arm refer https://github.com/actions/partner-runner-images/blob/main/images/arm-ubuntu-24-image.md#omitted-software
+    #ubuntu-24.04-arm android sdk not supported yet, so we need to use macos runner for now
     #refer https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md
     runs-on: macos-26
 
@@ -45,11 +47,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > src-tauri/gen/android/app/release.keystore
-          printf 'storeFile=release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
-            "$ANDROID_KEYSTORE_PASSWORD" "$ANDROID_KEY_ALIAS" "$ANDROID_KEY_PASSWORD" \
-            > src-tauri/gen/android/app/keystore.properties
+        run: node scripts/setup-android-signing.mjs
 
       - name: Get latest tag
         id: get_tag
