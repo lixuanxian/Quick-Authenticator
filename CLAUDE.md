@@ -42,6 +42,11 @@ Web 模式下 Tauri API 通过 `src/stubs/tauri-stub.js` 桩模块替代（vite 
 - **持久化**：桌面 `tauri-plugin-store`，Web `localStorage`
 - **共享优先**：业务逻辑（OTP、URI 解析等）统一在 `web-backend.js` 用 JS 实现，`tauri-backend.js` 直接导入复用，仅窗口控制等原生 API 走 Rust
 - **窗口**：桌面模式无原生标题栏（`decorations: false, transparent: true`），自定义拖拽
+- **相对路径**：禁止硬编码绝对路径引用静态资源，以支持子路径部署（`VITE_BASE_PATH`）：
+  - `index.html`：使用相对路径（`icons/icon.svg`，非 `/icons/icon.svg`）
+  - `public/` 下的 CSS：使用相对路径（`url('./file.ttf')`）
+  - JS 运行时拼接路径：使用 `` `${import.meta.env.BASE_URL}icons/...` ``
+  - `public/sw.js`：通过 `new URL('./', self.location).pathname` 动态获取 BASE
 
 ## File Map
 

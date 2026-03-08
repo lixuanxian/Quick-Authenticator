@@ -297,7 +297,7 @@ function renderEmpty() {
   return `
 <div class="empty">
   <div class="empty-icon">
-    <img src="/icons/icon.svg" width="56" height="56" alt="" style="opacity:0.9" />
+    <img src="${import.meta.env.BASE_URL}icons/icon.svg" width="56" height="56" alt="" style="opacity:0.9" />
   </div>
   <p class="empty-title">${t("empty.title")}</p>
   <p class="empty-sub">${t("empty.sub")}</p>
@@ -1451,7 +1451,7 @@ async function renderPushSettings(shell) {
     }
     new Notification(t("app.name"), {
       body: t("push.test.body"),
-      icon: "/icons/icon-192.png",
+      icon: `${import.meta.env.BASE_URL}icons/icon-192.png`,
     });
   });
 }
