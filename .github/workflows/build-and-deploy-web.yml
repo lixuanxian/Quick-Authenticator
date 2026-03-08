@@ -1,4 +1,4 @@
-name: Deploy Web to GitHub Pages
+name: Build Web and Deploy to GitHub Pages
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: deploy-web
+  group: build-and-deploy-web
   cancel-in-progress: true
 
 jobs:
@@ -24,7 +24,8 @@ jobs:
         with:
           node-version: 22
 
-      - run: npm ci
+      - name: Install dependencies 
+        run: npm install
 
       - name: Build Web
         env:

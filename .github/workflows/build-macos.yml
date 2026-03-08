@@ -37,7 +37,8 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
-      - run: npm ci
+      - name: Install dependencies 
+        run: npm install
 
       - name: Get latest tag
         id: get_tag
