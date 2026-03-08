@@ -102,28 +102,29 @@ async function refreshCodes() {
   // Refresh TOTP codes
   try {
     const results = await platform.generateAllTotp(accounts);
-    results.forEach(([id, result]) => {
-      if (result.status === "ok" || result.Ok) {
-        const data = result.Ok || result;
-        const el = document.querySelector(`[data-id="${id}"]`);
-        if (!el) return;
-        const codeEl = el.querySelector(".code");
-        const timerEl = el.querySelector(".timer-ring-progress");
-        const secsEl = el.querySelector(".secs");
-        if (codeEl) {
-          const formatted = data.code.length === 6
-            ? data.code.slice(0, 3) + " " + data.code.slice(3)
-            : data.code;
-          codeEl.textContent = formatted;
-          codeEl.classList.toggle("urgent", data.remaining <= 5);
-        }
-        if (timerEl) {
-          const circumference = 2 * Math.PI * 16;
-          timerEl.style.strokeDashoffset = circumference * (1 - data.progress);
-          timerEl.style.stroke = data.remaining <= 5 ? cssVar("--timer-danger") : data.remaining <= 10 ? cssVar("--timer-warn") : cssVar("--timer-ok");
-        }
-        if (secsEl) secsEl.textContent = data.remaining + "s";
+    results.forEach((data) => {
+      if (data.error) {
+        console.warn("TOTP error for", data.id, data.error);
+        return;
       }
+      const el = document.querySelector(`[data-id="${data.id}"]`);
+      if (!el) return;
+      const codeEl = el.querySelector(".code");
+      const timerEl = el.querySelector(".timer-ring-progress");
+      const secsEl = el.querySelector(".secs");
+      if (codeEl) {
+        const formatted = data.code.length === 6
+          ? data.code.slice(0, 3) + " " + data.code.slice(3)
+          : data.code;
+        codeEl.textContent = formatted;
+        codeEl.classList.toggle("urgent", data.remaining <= 5);
+      }
+      if (timerEl) {
+        const circumference = 2 * Math.PI * 16;
+        timerEl.style.strokeDashoffset = circumference * (1 - data.progress);
+        timerEl.style.stroke = data.remaining <= 5 ? cssVar("--timer-danger") : data.remaining <= 10 ? cssVar("--timer-warn") : cssVar("--timer-ok");
+      }
+      if (secsEl) secsEl.textContent = data.remaining + "s";
     });
   } catch (e) {
     console.error("refresh error", e);
@@ -215,11 +216,11 @@ function renderHome(shell) {
 <div class="nav-tabs">
   <button class="nav-btn active" data-nav="otp">
     <svg width="14" height="14" viewBox="0 0 512 512"><defs><linearGradient id="oti" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="#10b981" fill-opacity=".10"/><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="none" stroke="url(#oti)" stroke-width="12" stroke-linejoin="round"/><path d="M224 253 V230 A32 32 0 0 1 288 230 V253" fill="none" stroke="url(#oti)" stroke-width="14" stroke-linecap="round"/><rect x="202" y="253" width="108" height="82" rx="12" fill="url(#oti)"/><circle cx="256" cy="284" r="14" fill="var(--bg2)"/><path d="M248 292 L256 323 L264 292 Z" fill="var(--bg2)"/></svg>
-    OTP
+    ${t("nav.otp")}
   </button>
   <button class="nav-btn" data-nav="passkeys">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-    Passkey
+    ${t("nav.passkey")}
   </button>
 </div>
 <div class="toolbar">
@@ -296,9 +297,7 @@ function renderEmpty() {
   return `
 <div class="empty">
   <div class="empty-icon">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-    </svg>
+    <img src="/icons/icon.svg" width="56" height="56" alt="" style="opacity:0.9" />
   </div>
   <p class="empty-title">${t("empty.title")}</p>
   <p class="empty-sub">${t("empty.sub")}</p>
@@ -838,12 +837,83 @@ async function showQrModal(acc) {
 
 async function showMigrationExportModal() {
   try {
-    const qrUrls = await platform.generateMigrationQrDataUrls(accounts);
-    const total = qrUrls.length;
-    let current = 0;
-
+    // ── Step 1: Account selection ──
+    const selected = new Set(accounts.map(a => a.id));
     const overlay = document.createElement("div");
     overlay.className = "modal-overlay";
+
+    function renderSelection() {
+      const allSelected = selected.size === accounts.length;
+      overlay.innerHTML = `
+<div class="modal export-select-modal">
+  <div class="modal-header">
+    <span class="modal-title">${t("modal.export.select")}</span>
+    <button class="modal-close" id="modal-close">✕</button>
+  </div>
+  <div class="export-select-toolbar">
+    <button class="btn-toggle-all" id="btn-toggle-all">${allSelected ? t("export.deselect.all") : t("export.select.all")}</button>
+    <span class="export-count">${t("export.selected.count", selected.size)}</span>
+  </div>
+  <div class="export-select-list">
+    ${accounts.map(acc => {
+      const checked = selected.has(acc.id);
+      const initials = (acc.issuer || acc.name || "?").slice(0, 2).toUpperCase();
+      const color = stringToColor(acc.issuer + acc.name);
+      return `
+    <label class="export-select-item${checked ? " checked" : ""}" data-id="${acc.id}">
+      <input type="checkbox" ${checked ? "checked" : ""} />
+      <div class="avatar-sm" style="background:${color}">${getProviderIcon(acc.issuer) || initials}</div>
+      <div class="export-item-info">
+        <span class="export-item-issuer">${esc(acc.issuer || t("unknown.service"))}</span>
+        <span class="export-item-name">${esc(acc.name)}</span>
+      </div>
+    </label>`;
+    }).join("")}
+  </div>
+  <button class="btn-primary export-confirm" id="btn-export-confirm">${t("export.confirm")} (${selected.size})</button>
+</div>`;
+
+      overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+      overlay.querySelector("#modal-close").addEventListener("click", closeModal);
+
+      overlay.querySelector("#btn-toggle-all").addEventListener("click", () => {
+        if (selected.size === accounts.length) {
+          selected.clear();
+        } else {
+          accounts.forEach(a => selected.add(a.id));
+        }
+        renderSelection();
+      });
+
+      overlay.querySelectorAll(".export-select-item").forEach(item => {
+        const cb = item.querySelector("input[type=checkbox]");
+        cb.addEventListener("change", () => {
+          const id = item.dataset.id;
+          if (cb.checked) selected.add(id); else selected.delete(id);
+          renderSelection();
+        });
+      });
+
+      overlay.querySelector("#btn-export-confirm").addEventListener("click", () => {
+        if (selected.size === 0) { showAlert(t("export.no.selection")); return; }
+        const selectedAccounts = accounts.filter(a => selected.has(a.id));
+        showMigrationQrPages(selectedAccounts, overlay);
+      });
+    }
+
+    document.body.appendChild(overlay);
+    renderSelection();
+  } catch (e) {
+    showAlert(t("alert.export.failed") + e);
+  }
+}
+
+// ── Step 2: Show QR code pages for selected accounts ──
+async function showMigrationQrPages(selectedAccounts, overlay) {
+  try {
+    const qrUrls = await platform.generateMigrationQrDataUrls(selectedAccounts);
+    const total = qrUrls.length;
+    let current = 0;
 
     function renderPage() {
       overlay.innerHTML = `
@@ -860,7 +930,7 @@ async function showMigrationExportModal() {
     <button class="btn-page btn-next" id="btn-next" ${current === total - 1 ? "disabled" : ""}>›</button>
   </div>` : ""}
   <p class="modal-hint">${t("modal.migration.hint", total)}</p>
-  <p class="modal-hint" style="margin-top:4px;font-size:10px;opacity:0.6">${t("modal.migration.count", accounts.length)}</p>
+  <p class="modal-hint" style="margin-top:4px;font-size:10px;opacity:0.6">${t("modal.migration.count", selectedAccounts.length)}</p>
 </div>`;
 
       overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
@@ -876,7 +946,6 @@ async function showMigrationExportModal() {
       }
     }
 
-    document.body.appendChild(overlay);
     renderPage();
   } catch (e) {
     showAlert(t("alert.export.failed") + e);
@@ -1002,16 +1071,16 @@ function renderPasskeys(shell) {
 <div class="nav-tabs">
   <button class="nav-btn" data-nav="otp">
     <svg width="14" height="14" viewBox="0 0 512 512"><defs><linearGradient id="oti" x1=".5" y1="0" x2=".5" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="#10b981" fill-opacity=".10"/><path d="M256 80 L110 148 V280 C110 378 256 452 256 452 S402 378 402 280 V148 Z" fill="none" stroke="url(#oti)" stroke-width="12" stroke-linejoin="round"/><path d="M224 253 V230 A32 32 0 0 1 288 230 V253" fill="none" stroke="url(#oti)" stroke-width="14" stroke-linecap="round"/><rect x="202" y="253" width="108" height="82" rx="12" fill="url(#oti)"/><circle cx="256" cy="284" r="14" fill="var(--bg2)"/><path d="M248 292 L256 323 L264 292 Z" fill="var(--bg2)"/></svg>
-    OTP
+    ${t("nav.otp")}
   </button>
   <button class="nav-btn active" data-nav="passkeys">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-    Passkey
+    ${t("nav.passkey")}
   </button>
 </div>
 <div class="toolbar">
   <div class="search-wrap" style="flex:1">
-    <span style="font-size:13px;font-weight:600;color:var(--text)">Passkeys</span>
+    <span style="font-size:13px;font-weight:600;color:var(--text)">${t("nav.passkey")}</span>
   </div>
   ${isPushSupported() ? `<button class="btn-export" id="btn-push-settings" title="${t("push.settings")}">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1503,10 +1572,10 @@ const css = `
     display: flex; flex-direction: column;
     width: 100%; height: 100vh;
     background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    border: none;
+    border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 32px 80px var(--shadow);
+    box-shadow: none;
   }
 
   /* Titlebar */
@@ -1603,6 +1672,54 @@ const css = `
   .btn-page:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
   .btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
   .page-info { font-size: 12px; color: var(--text2); font-weight: 600; }
+
+  /* Export selection */
+  .export-select-modal { max-height: 80vh; display: flex; flex-direction: column; }
+  .export-select-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 4px; margin-bottom: 8px;
+  }
+  .btn-toggle-all {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text2); font-size: 11px; padding: 4px 10px;
+    border-radius: 6px; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-toggle-all:hover { border-color: var(--accent); color: var(--accent); }
+  .export-count { font-size: 11px; color: var(--text2); }
+  .export-select-list {
+    flex: 1; overflow-y: auto; max-height: 45vh;
+    display: flex; flex-direction: column; gap: 4px;
+    scrollbar-width: thin; scrollbar-color: var(--bg3) transparent;
+    padding: 2px 0;
+  }
+  .export-select-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer;
+    border: 1px solid transparent; transition: all 0.15s;
+    user-select: none;
+  }
+  .export-select-item:hover { background: var(--bg3); }
+  .export-select-item.checked { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .export-select-item input[type=checkbox] {
+    width: 16px; height: 16px; accent-color: var(--accent);
+    flex-shrink: 0; cursor: pointer;
+  }
+  .avatar-sm {
+    width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff;
+  }
+  .avatar-sm svg { width: 14px; height: 14px; }
+  .export-item-info { display: flex; flex-direction: column; min-width: 0; }
+  .export-item-issuer { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .export-item-name { font-size: 10px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .export-confirm {
+    margin-top: 10px; width: 100%; padding: 10px;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .export-confirm:hover { opacity: 0.9; }
 
   /* HOTP */
   .btn-hotp-refresh {

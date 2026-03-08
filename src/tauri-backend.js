@@ -1,13 +1,20 @@
 // ── Tauri Backend (Windows / Android) ─────────────────────────────────────────
+// OTP logic is shared with web-backend.js (single JS implementation).
+// This file only handles Tauri-specific APIs: storage (plugin-store), clipboard, window controls.
 
-import { invoke } from "@tauri-apps/api/core";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { load } from "@tauri-apps/plugin-store";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
+// ── Shared OTP functions (from web-backend.js) ──────────────────────────────
+export {
+  generateTotp, generateHotp, generateAllTotp,
+  parseOtpauthUri, validateSecret, generateNewSecret,
+} from './web-backend.js';
+
+// ── Storage (tauri-plugin-store) ─────────────────────────────────────────────
 let store;
 
-// Storage
 export async function initStore() {
   store = await load("accounts.json", { autoSave: true });
 }
@@ -20,37 +27,12 @@ export async function saveAccounts(accounts) {
   await store.set("accounts", accounts);
 }
 
-// TOTP
-export async function generateTotp(account) {
-  return invoke("generate_totp", { account });
-}
-
-export async function generateHotp(account) {
-  return invoke("generate_hotp", { account });
-}
-
-export async function generateAllTotp(accounts) {
-  return invoke("generate_all_totp", { accounts });
-}
-
-export async function parseOtpauthUri(uri) {
-  return invoke("parse_otpauth_uri", { uri });
-}
-
-export async function validateSecret(secret) {
-  return invoke("validate_secret", { secret });
-}
-
-export async function generateNewSecret() {
-  return invoke("generate_new_secret");
-}
-
-// Clipboard
+// ── Clipboard ────────────────────────────────────────────────────────────────
 export async function copyText(text) {
   await writeText(text);
 }
 
-// Window controls
+// ── Window controls (desktop only) ───────────────────────────────────────────
 export function startDragging() { getCurrentWindow().startDragging(); }
 export function closeWindow() { getCurrentWindow().close(); }
 export function minimizeWindow() { getCurrentWindow().minimize(); }

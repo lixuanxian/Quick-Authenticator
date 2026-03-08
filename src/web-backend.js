@@ -107,9 +107,9 @@ export async function generateAllTotp(accounts) {
     if (acc.account_type === 'hotp') continue;
     try {
       const result = await generateTotpCode(acc.secret, acc.period, acc.digits, acc.algorithm);
-      results.push([acc.id, { Ok: result }]);
+      results.push({ id: acc.id, ...result });
     } catch (e) {
-      results.push([acc.id, { Err: e.message }]);
+      // skip failed entries
     }
   }
   return results;

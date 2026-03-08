@@ -7,6 +7,8 @@ const zh = {
   "app.name": "快捷验证器",
 
   // ── Home ──
+  "nav.otp": "动态码 (OTP)",
+  "nav.passkey": "密钥 (Passkey)",
   "search.placeholder": "搜索账户…",
   "export.title": "导出到 Google Authenticator",
   "add.account": "添加账户",
@@ -82,6 +84,12 @@ const zh = {
   "modal.scan.hint": "将摄像头对准 otpauth:// 二维码",
   "modal.export.qr": "导出二维码",
   "modal.export.migration": "导出到 Google Authenticator",
+  "modal.export.select": "选择要导出的账户",
+  "export.select.all": "全选",
+  "export.deselect.all": "取消全选",
+  "export.selected.count": (n) => `已选择 ${n} 个`,
+  "export.confirm": "导出",
+  "export.no.selection": "请至少选择一个账户",
   "modal.migration.hint": (total) => `在 Google Authenticator 中选择「导入帐号」→「扫描二维码」${total > 1 ? `<br>共 ${total} 页，请依次扫描` : ""}`,
   "modal.migration.count": (n) => `共 ${n} 个账户`,
   "alert.export.failed": "导出失败：",
@@ -211,6 +219,8 @@ const en = {
   "app.name": "Quick Authenticator",
 
   // ── Home ──
+  "nav.otp": "OTP",
+  "nav.passkey": "Passkey",
   "search.placeholder": "Search accounts...",
   "export.title": "Export to Google Authenticator",
   "add.account": "Add Account",
@@ -286,6 +296,12 @@ const en = {
   "modal.scan.hint": "Point camera at an otpauth:// QR code",
   "modal.export.qr": "Export QR Code",
   "modal.export.migration": "Export to Google Authenticator",
+  "modal.export.select": "Select accounts to export",
+  "export.select.all": "Select all",
+  "export.deselect.all": "Deselect all",
+  "export.selected.count": (n) => `${n} selected`,
+  "export.confirm": "Export",
+  "export.no.selection": "Please select at least one account",
   "modal.migration.hint": (total) => `In Google Authenticator, select "Import accounts" > "Scan QR code"${total > 1 ? `<br>${total} pages total, scan each in order` : ""}`,
   "modal.migration.count": (n) => `${n} account(s) total`,
   "alert.export.failed": "Export failed: ",
