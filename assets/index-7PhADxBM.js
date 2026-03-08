@@ -90,7 +90,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0placeholder_key_for_activation
 `,a.querySelector("#search")?.addEventListener("input",u=>{V0=u.target.value,Ue()}),a.querySelectorAll(".nav-btn").forEach(u=>{u.addEventListener("click",()=>{u.dataset.nav==="passkeys"&&(ze="passkeys",Ue())})}),a.querySelector("#btn-add-account")?.addEventListener("click",()=>{ze="add",Ue()}),a.querySelector("#btn-export")?.addEventListener("click",()=>{if(Oe.length===0){Re(O("no.accounts"));return}Rs()}),l.forEach(u=>{const h=a.querySelector(`[data-id="${u.id}"]`);h&&(h.querySelector(".btn-copy")?.addEventListener("click",()=>Ls(u)),h.querySelector(".btn-qr")?.addEventListener("click",f=>{f.stopPropagation(),_s(u)}),h.querySelector(".btn-edit")?.addEventListener("click",f=>{f.stopPropagation(),lr=u.id,ze="edit",Ue()}),h.querySelector(".btn-delete")?.addEventListener("click",f=>{f.stopPropagation(),Us(u.id)}),h.querySelector(".btn-hotp-refresh")?.addEventListener("click",f=>{f.stopPropagation(),Ms(u.id)}))})}function Ts(){return`
 <div class="empty">
   <div class="empty-icon">
-    <img src="/icons/icon.svg" width="56" height="56" alt="" style="opacity:0.9" />
+    <img src="/Quick-Authenticator/icons/icon.svg" width="56" height="56" alt="" style="opacity:0.9" />
   </div>
   <p class="empty-title">${O("empty.title")}</p>
   <p class="empty-sub">${O("empty.sub")}</p>
@@ -290,7 +290,7 @@ ${a?"":`<div class="form-tabs">
     <span class="qr-issuer">${at(c.issuer||O("unknown.service"))}</span>
     <span class="qr-name">${at(c.name)}</span>
   </div>
-</div>`,document.body.appendChild(l),l.addEventListener("click",u=>{u.target===l&&bt()}),l.querySelector("#modal-close").addEventListener("click",bt)}catch(a){Re(O("alert.qr.failed")+a)}}async function Rs(){try{let l=function(){const u=c.size===Oe.length;a.innerHTML=`
+</div>`,document.body.appendChild(l),l.addEventListener("click",u=>{u.target===l&&bt()}),l.querySelector("#modal-close").addEventListener("click",bt)}catch(a){Re(O("alert.qr.failed")+a)}}async function Rs(){try{let c=function(){const u=a.size===Oe.length;l.innerHTML=`
 <div class="modal export-select-modal">
   <div class="modal-header">
     <span class="modal-title">${O("modal.export.select")}</span>
@@ -298,10 +298,10 @@ ${a?"":`<div class="form-tabs">
   </div>
   <div class="export-select-toolbar">
     <button class="btn-toggle-all" id="btn-toggle-all">${O(u?"export.deselect.all":"export.select.all")}</button>
-    <span class="export-count">${O("export.selected.count",c.size)}</span>
+    <span class="export-count">${O("export.selected.count",a.size)}</span>
   </div>
   <div class="export-select-list">
-    ${Oe.map(h=>{const f=c.has(h.id),B=(h.issuer||h.name||"?").slice(0,2).toUpperCase(),w=oo(h.issuer+h.name);return`
+    ${Oe.map(h=>{const f=a.has(h.id),B=(h.issuer||h.name||"?").slice(0,2).toUpperCase(),w=oo(h.issuer+h.name);return`
     <label class="export-select-item${f?" checked":""}" data-id="${h.id}">
       <input type="checkbox" ${f?"checked":""} />
       <div class="avatar-sm" style="background:${w}">${io(h.issuer)||B}</div>
@@ -311,23 +311,23 @@ ${a?"":`<div class="form-tabs">
       </div>
     </label>`}).join("")}
   </div>
-  <button class="btn-primary export-confirm" id="btn-export-confirm">${O("export.confirm")} (${c.size})</button>
-</div>`,a.addEventListener("click",h=>{h.target===a&&bt()}),a.querySelector("#modal-close").addEventListener("click",bt),a.querySelector("#btn-toggle-all").addEventListener("click",()=>{c.size===Oe.length?c.clear():Oe.forEach(h=>c.add(h.id)),l()}),a.querySelectorAll(".export-select-item").forEach(h=>{const f=h.querySelector("input[type=checkbox]");f.addEventListener("change",()=>{const B=h.dataset.id;f.checked?c.add(B):c.delete(B),l()})}),a.querySelector("#btn-export-confirm").addEventListener("click",()=>{if(c.size===0){Re(O("export.no.selection"));return}const h=Oe.filter(f=>c.has(f.id));Os(h,a)})};const c=new Set(Oe.map(u=>u.id)),a=document.createElement("div");a.className="modal-overlay",document.body.appendChild(a),l()}catch(c){Re(O("alert.export.failed")+c)}}async function Os(c,a){try{let f=function(){a.innerHTML=`
+  <button class="btn-primary export-confirm" id="btn-export-confirm">${O("export.confirm")} (${a.size})</button>
+</div>`,l.addEventListener("click",h=>{h.target===l&&bt()}),l.querySelector("#modal-close").addEventListener("click",bt),l.querySelector("#btn-toggle-all").addEventListener("click",()=>{a.size===Oe.length?a.clear():Oe.forEach(h=>a.add(h.id)),c()}),l.querySelectorAll(".export-select-item").forEach(h=>{const f=h.querySelector("input[type=checkbox]");f.addEventListener("change",()=>{const B=h.dataset.id;f.checked?a.add(B):a.delete(B),c()})}),l.querySelector("#btn-export-confirm").addEventListener("click",()=>{if(a.size===0){Re(O("export.no.selection"));return}const h=Oe.filter(f=>a.has(f.id));Os(h,l)})};const a=new Set(Oe.map(u=>u.id)),l=document.createElement("div");l.className="modal-overlay",document.body.appendChild(l),c()}catch(c){Re(O("alert.export.failed")+c)}}async function Os(c,a){try{let l=function(){a.innerHTML=`
 <div class="modal">
   <div class="modal-header">
     <span class="modal-title">${O("modal.export.migration")}</span>
     <button class="modal-close" id="modal-close">✕</button>
   </div>
-  <img class="qr-image" src="${l[h]}" alt="Migration QR" />
-  ${u>1?`
+  <img class="qr-image" src="${u[f]}" alt="Migration QR" />
+  ${h>1?`
   <div class="migration-pager">
-    <button class="btn-page btn-prev" id="btn-prev" ${h===0?"disabled":""}>‹</button>
-    <span class="page-info">${h+1} / ${u}</span>
-    <button class="btn-page btn-next" id="btn-next" ${h===u-1?"disabled":""}>›</button>
+    <button class="btn-page btn-prev" id="btn-prev" ${f===0?"disabled":""}>‹</button>
+    <span class="page-info">${f+1} / ${h}</span>
+    <button class="btn-page btn-next" id="btn-next" ${f===h-1?"disabled":""}>›</button>
   </div>`:""}
-  <p class="modal-hint">${O("modal.migration.hint",u)}</p>
+  <p class="modal-hint">${O("modal.migration.hint",h)}</p>
   <p class="modal-hint" style="margin-top:4px;font-size:10px;opacity:0.6">${O("modal.migration.count",c.length)}</p>
-</div>`,a.addEventListener("click",B=>{B.target===a&&bt()}),a.querySelector("#modal-close").addEventListener("click",bt),u>1&&(a.querySelector("#btn-prev")?.addEventListener("click",()=>{h>0&&(h--,f())}),a.querySelector("#btn-next")?.addEventListener("click",()=>{h<u-1&&(h++,f())}))};const l=await Le.generateMigrationQrDataUrls(c),u=l.length;let h=0;f()}catch(l){Re(O("alert.export.failed")+l)}}async function Ms(c){const a=Oe.find(l=>l.id===c);if(!(!a||a.account_type!=="hotp")){a.counter=(a.counter||0)+1,await Ut();try{const l=await Le.generateHotp(a),u=document.querySelector(`[data-id="${c}"]`);if(!u)return;const h=u.querySelector(".code");if(h){const f=l.code.length===6?l.code.slice(0,3)+" "+l.code.slice(3):l.code;h.textContent=f}}catch(l){console.error("HOTP refresh error",l)}}}async function Ls(c){try{const a=c.account_type==="hotp"?await Le.generateHotp(c):await Le.generateTotp(c);await Le.copyText(a.code);const l=document.querySelector(`[data-id="${c.id}"] .btn-copy`);if(l){const u=l.textContent;l.textContent=O("copied"),l.classList.add("copied"),setTimeout(()=>{l.classList.remove("copied")},1500)}}catch(a){console.error(a)}}async function Us(c){await no(O("confirm.delete.account"))&&(Oe=Oe.filter(a=>a.id!==c),await Ut(),Ue())}function Re(c){const a=document.createElement("div");a.className="modal-overlay",a.innerHTML=`
+</div>`,a.addEventListener("click",B=>{B.target===a&&bt()}),a.querySelector("#modal-close").addEventListener("click",bt),h>1&&(a.querySelector("#btn-prev")?.addEventListener("click",()=>{f>0&&(f--,l())}),a.querySelector("#btn-next")?.addEventListener("click",()=>{f<h-1&&(f++,l())}))};const u=await Le.generateMigrationQrDataUrls(c),h=u.length;let f=0;l()}catch(l){Re(O("alert.export.failed")+l)}}async function Ms(c){const a=Oe.find(l=>l.id===c);if(!(!a||a.account_type!=="hotp")){a.counter=(a.counter||0)+1,await Ut();try{const l=await Le.generateHotp(a),u=document.querySelector(`[data-id="${c}"]`);if(!u)return;const h=u.querySelector(".code");if(h){const f=l.code.length===6?l.code.slice(0,3)+" "+l.code.slice(3):l.code;h.textContent=f}}catch(l){console.error("HOTP refresh error",l)}}}async function Ls(c){try{const a=c.account_type==="hotp"?await Le.generateHotp(c):await Le.generateTotp(c);await Le.copyText(a.code);const l=document.querySelector(`[data-id="${c.id}"] .btn-copy`);if(l){const u=l.textContent;l.textContent=O("copied"),l.classList.add("copied"),setTimeout(()=>{l.classList.remove("copied")},1500)}}catch(a){console.error(a)}}async function Us(c){await no(O("confirm.delete.account"))&&(Oe=Oe.filter(a=>a.id!==c),await Ut(),Ue())}function Re(c){const a=document.createElement("div");a.className="modal-overlay",a.innerHTML=`
 <div class="modal">
   <div class="modal-header">
     <span class="modal-title">${O("app.name")||""}</span>
@@ -537,7 +537,7 @@ ${a?"":`<div class="form-tabs">
       ${O("push.test.btn")}
     </button>
   </div>
-</div>`,a.querySelector("#btn-back")?.addEventListener("click",()=>{ze="passkeys",Ue()}),a.querySelector("#btn-subscribe")?.addEventListener("click",async()=>{const B=a.querySelector("#push-vapid")?.value.trim();if(!B){Re(O("alert.enter.vapid"));return}try{Ds(B),await gs(B),Ue()}catch(w){Re(O("alert.subscribe.failed")+w.message)}}),a.querySelector("#btn-unsubscribe")?.addEventListener("click",async()=>{try{await Bs(),Ue()}catch(B){Re(O("alert.unsubscribe.failed")+B.message)}}),a.querySelector("#btn-test-push")?.addEventListener("click",()=>{if(!("Notification"in window)||Notification.permission!=="granted"){Re(O("alert.grant.permission"));return}new Notification(O("app.name"),{body:O("push.test.body"),icon:"/icons/icon-192.png"})})}function qs(c){const a=document.createElement("div");a.className="modal-overlay",a.innerHTML=`
+</div>`,a.querySelector("#btn-back")?.addEventListener("click",()=>{ze="passkeys",Ue()}),a.querySelector("#btn-subscribe")?.addEventListener("click",async()=>{const B=a.querySelector("#push-vapid")?.value.trim();if(!B){Re(O("alert.enter.vapid"));return}try{Ds(B),await gs(B),Ue()}catch(w){Re(O("alert.subscribe.failed")+w.message)}}),a.querySelector("#btn-unsubscribe")?.addEventListener("click",async()=>{try{await Bs(),Ue()}catch(B){Re(O("alert.unsubscribe.failed")+B.message)}}),a.querySelector("#btn-test-push")?.addEventListener("click",()=>{if(!("Notification"in window)||Notification.permission!=="granted"){Re(O("alert.grant.permission"));return}new Notification(O("app.name"),{body:O("push.test.body"),icon:"/Quick-Authenticator/icons/icon-192.png"})})}function qs(c){const a=document.createElement("div");a.className="modal-overlay",a.innerHTML=`
 <div class="modal">
   <div class="modal-header">
     <span class="modal-title">${O("push.auth.request")}</span>
